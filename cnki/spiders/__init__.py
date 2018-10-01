@@ -12,22 +12,31 @@ from cnki.items import CnkiItem
 import re
 from scrapy.http import Request
 from bs4 import BeautifulSoup
-# from scrapy_splash import SplashRequest
+from scrapy_splash import SplashRequest
 
 
 class CnkiSpider(scrapy.Spider):
     name = 'cnki'
     start_urls = [
-        'http://kns.cnki.net/KCMS/detail/detail.aspx?dbcode=CFJD&dbname=CJFDTEMN&filename=ZJCA201819002&v',
-        'http://kns.cnki.net/KCMS/detail/detail.aspx?dbcode=CJFQ&dbname=CJFDTEMP&filename=GJGZ201804003&v',
-        'http://kns.cnki.net/KCMS/detail/detail.aspx?dbcode=CFJD&dbname=CJFDTEMN&filename=JXKS201837005&v',
-        'http://kns.cnki.net/KCMS/detail/detail.aspx?dbcode=CJFQ&dbname=CJFDTEMP&filename=KSYJ201809003&v']
+        'http://nvsm.cnki.net/kns/brief/result.aspx?dbprefix=SCDB&crossDbcodes=CJFQ,CDFD,CMFD,CPFD,IPFD,CCND,CJRF,CJFN,CCJD']
+    # start_urls = [
+    #     'http://kns.cnki.net/KCMS/detail/detail.aspx?dbcode=CFJD&dbname=CJFDTEMN&filename=ZJCA201819002&v',
+    #     'http://kns.cnki.net/KCMS/detail/detail.aspx?dbcode=CJFQ&dbname=CJFDTEMP&filename=GJGZ201804003&v',
+    #     'http://kns.cnki.net/KCMS/detail/detail.aspx?dbcode=CFJD&dbname=CJFDTEMN&filename=JXKS201837005&v',
+    #     'http://kns.cnki.net/KCMS/detail/detail.aspx?dbcode=CJFQ&dbname=CJFDTEMP&filename=KSYJ201809003&v']
 
-    # def start_requests(self):
-    #     for url in self.start_urls:
-    #         yield SplashRequest(url, args={'images': 0, 'timeout': 3})
+    def start_requests(self):
+        for url in self.start_urls:
+            yield SplashRequest(url, args={'images': 0, 'timeout': 3})
 
     def parse(self, response):
+        print(response.text)
+        article_url = response.xpath(
+            '//*[@id="ctl00"]/table/tbody/tr[2]/td/table/tbody/tr[2]/td[2]/a/@href').extract()[0]
+        article_req = Request(url=article_url, callback=self.parseArticle)
+        yield article_req
+
+    def parseArticle(self, response):
         loader = ItemLoader(item=CnkiItem(), response=response)
         loader.add_xpath(
             'title', '//*[@id="mainArea"]/div[3]/div[1]/h2/text()', MapCompose(unicode.strip, unicode.title))

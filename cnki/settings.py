@@ -13,6 +13,7 @@ BOT_NAME = 'cnki'
 
 SPIDER_MODULES = ['cnki.spiders']
 NEWSPIDER_MODULE = 'cnki.spiders'
+SPLASH_URL = 'http://localhost:8050'
 
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
@@ -21,7 +22,23 @@ NEWSPIDER_MODULE = 'cnki.spiders'
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = False
 FEED_EXPORT_ENCODING = 'utf-8'
+# settings.py文件
+DOWNLOADER_MIDDLEWARES = {
+    # 'cnki.middlewares.RandomProxyMiddleware': 542,
+    'cnki.middlewares.RandomUserAgentMiddleware': 543,
+    # 这里要设置原来的scrapy的useragent为None，否者会被覆盖掉
+    'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware': None,
+    'scrapy_splash.SplashCookiesMiddleware': 723,
+    'scrapy_splash.SplashMiddleware': 725,
+    'scrapy.downloadermiddlewares.httpcompression.HttpCompressionMiddleware': 810,
+}
 
+SPIDER_MIDDLEWARES = {
+    'scrapy_splash.SplashDeduplicateArgsMiddleware': 100,
+}
+DUPEFILTER_CLASS = 'scrapy_splash.SplashAwareDupeFilter'
+HTTPCACHE_STORAGE = 'scrapy_splash.SplashAwareFSCacheStorage'
+RANDOM_UA_TYPE = 'random'
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 #CONCURRENT_REQUESTS = 32
 
@@ -34,7 +51,8 @@ FEED_EXPORT_ENCODING = 'utf-8'
 #CONCURRENT_REQUESTS_PER_IP = 16
 
 # Disable cookies (enabled by default)
-#COOKIES_ENABLED = False
+COOKIES_ENABLED = True
+# DOWNLOADER_CLIENTCONTEXTFACTORY = 'cnki.context.CustomClientContextFactory'
 
 # Disable Telnet Console (enabled by default)
 #TELNETCONSOLE_ENABLED = False
